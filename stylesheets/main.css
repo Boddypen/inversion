@@ -1,0 +1,13 @@
+body
+{
+	background-color: #000;
+}
+
+#GameCanvas
+{
+	background-color: #111;
+	
+	box-shadow: 0px 0px 10px #222;
+	
+	border-radius: 5px;
+}
