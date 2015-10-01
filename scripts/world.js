@@ -86,11 +86,19 @@ World.prototype.draw = function(displacementX, displacementY, cameraX, cameraY)
 {
     for (var x = -this.width; x < this.width; x++)
         for (var y = -this.height; y < this.height; y++)
+        {
+            var newX = displacementX + (x * this.tileWidth) - cameraX + (player.X / 2);
+            var newY = displacementY + (y * this.tileHeight) - cameraY + (player.Y / 2);
+
+            if (newX > 0 && newX < this.width * this.tileWidth
+                    && newY > 0 && newY < this.height * this.tileHeight)
+
             context.drawImage(this.levelBackgrounds[this.currentLevel],
-					displacementX + (x * this.tileWidth) - cameraX + (player.X / 2),
-					displacementY + (y * this.tileHeight) - cameraY + (player.Y / 2),
-					this.tileWidth,
-					this.tileHeight);
+                    displacementX + (x * this.tileWidth) - cameraX + (player.X / 2),
+                    displacementY + (y * this.tileHeight) - cameraY + (player.Y / 2),
+                    this.tileWidth,
+                    this.tileHeight);
+        }
 
 	// Use a double for loop to loop through every tile in the level
 	for(var x = 0; x < this.width; x++)
