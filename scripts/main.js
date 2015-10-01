@@ -8,7 +8,8 @@ context.imageSmoothingEnabled = false;
 
 // Make the main game variables
 var keyboard = new Keyboard();
-var player = new Player(256, 256);
+var sound = new Sound();
+var player = new Player(256, 768);
 var world = new World(48, 48);
 
 // Set up frame counting (FPS)
@@ -18,6 +19,9 @@ var frames = 0;
 // Camera variables
 var cameraX = player.X;
 var cameraY = player.Y;
+
+var previousLeft = false;
+var previousRight = false;
 
 // More camera variables
 var displacementX = (canvas.width / 2) - (player.width / 2);
@@ -42,18 +46,24 @@ function run()
 	// Clear the screen
 	clear();
 	
-	// Update Logic
-	// Update the world
-	world.update();
-		
-	// Update the player with the keyboard
-	player.update(world.XG,
-			world.YG,
-			keyboard.isKeyDown(keyboard.KEY_LEFT),
-			keyboard.isKeyDown(keyboard.KEY_RIGHT),
-			keyboard.isKeyDown(keyboard.KEY_SPACE),
-			world.levels[world.currentLevel]);
-	
+	if (!player.isDead)
+	{
+	    // Update Logic
+	    // Update the world
+	    world.update();
+
+	    // Update the player with the keyboard
+	    player.update(world.XG,
+                world.YG,
+                keyboard.isKeyDown(keyboard.KEY_LEFT),
+                keyboard.isKeyDown(keyboard.KEY_RIGHT),
+                previousLeft, previousRight,
+                keyboard.isKeyDown(keyboard.KEY_SPACE));
+
+	    previousLeft = keyboard.isKeyDown(keyboard.KEY_LEFT);
+	    previousRight = keyboard.isKeyDown(keyboard.KEY_RIGHT);
+	}
+
 	// Drawing Logic
 	// Move Camera
 	cameraX += (player.X - cameraX) / 5;
@@ -62,15 +72,19 @@ function run()
 	// Draw the world
 	world.draw(displacementX, displacementY, cameraX, cameraY);
 	
-	// Draw the player
-	player.draw(displacementX,
-			displacementY,
-			cameraX,
-			cameraY,
-			(player.X - cameraX) * 2,
-			(player.Y - cameraY) * 2,
-			keyboard.isKeyDown(keyboard.KEY_LEFT),
-			keyboard.isKeyDown(keyboard.KEY_RIGHT));
+	if (!player.isDead)
+	{
+	    // Draw the player
+	    player.draw(displacementX,
+                displacementY,
+                cameraX,
+                cameraY,
+                (player.X - cameraX) * 2,
+                (player.Y - cameraY) * 2,
+                keyboard.isKeyDown(keyboard.KEY_LEFT),
+                keyboard.isKeyDown(keyboard.KEY_RIGHT),
+                keyboard.isKeyDown(keyboard.KEY_SPACE));
+	}
 
 	// Draw the FPS counter
 	context.fillStyle = "#111";
