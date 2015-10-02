@@ -96,14 +96,21 @@ Player.prototype.update = function(XG, YG, left, right, previousLeft, previousRi
 	if (this.YV > 0) wasDown = true;
 
     // Death Logic
-	this.isDead = (wasDown && (cellDown == 3 || cellDiag == 3))
-        || (wasUp && (cell == 4 || cellRight == 4)
+	this.isDead = ((wasDown && (cellDown == 3 || cellDiag == 3))
+        || (wasUp && (cell == 4 || cellRight == 4) && this.YV < -2)
         || (wasLeft && (cell == 5 || cellDown == 5))
         || (wasRight && (cellRight == 6 || cellDiag == 6)))
 
 	if (this.isDead)
 	{
+	    world.fails++;
+
 	    sound.deathSound.play();
+
+	    if (Math.floor(Math.random() * 3) == 0)
+	        sound.screamSound.play();
+
+	    effects.splice(effects.length - 1, new Effect("images/spritesheets/explosion.png", this.X + (this.width / 2), this.Y + (this.height / 2), 0.0, 0.0, 1.0, 16, 16, 16, 0, 2, 0.0, 0.0));
 
 	    return;
 	}
@@ -123,7 +130,7 @@ Player.prototype.update = function(XG, YG, left, right, previousLeft, previousRi
 	if (this.X < 0) this.X = 0;
 	if (this.Y < 0) this.Y = 0;
 
-	//console.log("Top Left: " + cell + "\nTop Right: " + cellRight + "\nBottom Left: " + cellDown + "\nBottom Right: " + cellDiag + "\n" + wasUp + " " + wasDown + " " + wasLeft + " " + wasRight + "\n" + this.X + ", " + this.Y + " - " + this.XV + ", " + this.YV);
+	console.log("Top Left: " + cell + "\nTop Right: " + cellRight + "\nBottom Left: " + cellDown + "\nBottom Right: " + cellDiag + "\n" + wasUp + " " + wasDown + " " + wasLeft + " " + wasRight + "\n" + this.X + ", " + this.Y + " - " + this.XV + ", " + this.YV);
 	//console.log(world.YG);
 
 	if ((wasLeft && (this.XV > 0)) || (wasRight && (this.XV < 0)))
@@ -132,12 +139,7 @@ Player.prototype.update = function(XG, YG, left, right, previousLeft, previousRi
 	if (!cell && !cellRight && !cellDown && !cellRight)
 	    falling = true;
 	else
-	{
-	    if (falling)
-
-        
 	    falling = false;
-	}
 
 	if (wasDown)
 	{
@@ -160,7 +162,7 @@ Player.prototype.update = function(XG, YG, left, right, previousLeft, previousRi
 		{
 			if (cell && cellRight)
 				this.newY = this.tileToPixel(ty) + world.tileHeight;
-			this.Y = Math.floor(ty + 1);
+			this.Y = Math.floor(ty + 1) - 1;
 			this.YV = 0;
 
 			cell = cellDown;
@@ -229,9 +231,14 @@ Player.prototype.update = function(XG, YG, left, right, previousLeft, previousRi
 		this.runningDisplacement += 0.03;
 
 	if (falling)
-		this.flyTime++;
+	    this.flyTime++;
 	else
+	{
+	    if (this.flyTime > 0 && Math.abs(this.YV) > 2)
+	        sound.fallSound.play();
+
 	    this.flyTime = 0;
+	}
 
     // Play the step sounds
 	if ((this.runningDisplacement.toFixed(1) % 2 == 0) && (left || right) && !falling)

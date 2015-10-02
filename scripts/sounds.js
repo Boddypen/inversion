@@ -71,7 +71,7 @@ var Sound = function()
     ({
         urls: ["sounds/music/menu.mp3"],
         volume: 1.0,
-        autoplay: true,
+        autoplay: false,
         buffer: true,
         fadein: true,
         looped: true
