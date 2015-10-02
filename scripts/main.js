@@ -155,12 +155,18 @@ function run()
             effects[i].draw(displacementX, displacementY, cameraX, cameraY);
 
         // Draw the level door
-        context.drawImage(world.doorImage, displacementX, displacementY, world.tileWidth, world.tileHeight);
-        /*
-                displacementX + (world.levelDoors[world.currentLevel * 2] player.X) - cameraX,
-                displacementY + (world.levelDoors[(world.currentLevel * 2) + 1] player.Y) - cameraY,
-                this.tileWidth, this.tileHeight);
-        */
+        context.drawImage(world.doorImage, displacementX + (world.levelDoors[world.currentLevel * 2]) - cameraX, displacementY + (world.levelDoors[(world.currentLevel * 2) + 1]) - cameraY, world.tileWidth, world.tileHeight);
+
+        if (player.X > world.levelDoors[world.currentLevel * 2] - world.tileWidth && player.Y > world.levelDoors[(world.currentLevel * 2) + 1] - world.tileHeight
+            && player.X < world.levelDoors[world.currentLevel * 2] + (world.tileWidth * 2) && player.Y < world.levelDoors[(world.currentLevel * 2) + 1] + (world.tileHeight * 2))
+        {
+            world.currentLevel++;
+
+            sound.enterSound.play();
+            
+            player = new Player(world.levelOrigins[world.currentLevel * 2], world.levelOrigins[(world.currentLevel * 2) + 1]);
+        }
+
         if (!player.isDead)
         {
             // Draw the player
