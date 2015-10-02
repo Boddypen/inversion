@@ -4,6 +4,8 @@ var Player = function(initialX, initialY)
 	this.runningDisplacement = 0;
 	this.flyTime = 0;
 
+	this.isDead = false;
+
 	// Load the player images
 	this.playerImage = new Image();
 	// Right standing images
@@ -41,6 +43,9 @@ var Player = function(initialX, initialY)
 	this.leftFallingImage = new Image();
 	this.leftFallingImage.src = "images/player/l_f.png";
 	
+    // Sound
+	this.shouldPlayStepSound = true;
+
 	// Set the floating variables
 	falling = false;
 	this.direction = 1;
@@ -55,8 +60,8 @@ var Player = function(initialX, initialY)
 	this.oldY = initialY;
 
 	// Set the size of the player
-	this.width = 128;
-	this.height = 128;
+	this.width = 96;
+	this.height = 96;
 	
 	// Set the initial velocities of the player
 	this.XV = 0;
@@ -67,7 +72,7 @@ var Player = function(initialX, initialY)
 }
 
 // Function: Update the player's position, velocity, etc.
-Player.prototype.update = function(XG, YG, left, right, space)
+Player.prototype.update = function(XG, YG, left, right, previousLeft, previousRight, space)
 {
 	// Collision detection
 	// Find out what tiles the player occupies
@@ -79,6 +84,36 @@ Player.prototype.update = function(XG, YG, left, right, space)
 	var cellRight = world.levels[world.currentLevel][Math.floor(tx / world.tileWidth) + 1][Math.floor(ty / world.tileHeight)];
 	var cellDown = world.levels[world.currentLevel][Math.floor(tx / world.tileWidth)][Math.floor(ty / world.tileHeight) + 1];
 	var cellDiag = world.levels[world.currentLevel][Math.floor(tx / world.tileWidth) + 1][Math.floor(ty / world.tileHeight) + 1];
+
+    // Calculate direction, for collision purposes
+	var wasLeft = false;
+	var wasRight = false;
+	var wasUp = false;
+	var wasDown = false;
+	if (this.XV < 0) wasLeft = true;
+	if (this.XV > 0) wasRight = true;
+	if (this.YV < 0) wasUp = true;
+	if (this.YV > 0) wasDown = true;
+
+    // Death Logic
+	this.isDead = ((wasDown && (cellDown == 3 || cellDiag == 3))
+        || (wasUp && (cell == 4 || cellRight == 4) && this.YV < -2)
+        || (wasLeft && (cell == 5 || cellDown == 5))
+        || (wasRight && (cellRight == 6 || cellDiag == 6)))
+
+	if (this.isDead)
+	{
+	    world.fails++;
+
+	    sound.deathSound.play();
+
+	    if (Math.floor(Math.random() * 3) == 0)
+	        sound.screamSound.play();
+
+	    effects.splice(effects.length - 1, new Effect("images/spritesheets/explosion.png", this.X + (this.width / 2), this.Y + (this.height / 2), 0.0, 0.0, 1.0, 16, 16, 16, 0, 2, 0.0, 0.0));
+
+	    return;
+	}
 
 	cell = cell > 0;
 	cellRight = cellRight > 0;
@@ -95,26 +130,16 @@ Player.prototype.update = function(XG, YG, left, right, space)
 	if (this.X < 0) this.X = 0;
 	if (this.Y < 0) this.Y = 0;
 
-	// Calculate direction, for collision purposes
-	var wasLeft = false;
-	var wasRight = false;
-	var wasUp = false;
-	var wasDown = false;
-	if (this.XV < 0) wasLeft = true;
-	if (this.XV > 0) wasRight = true;
-	if (this.YV < 0) wasUp = true;
-	if (this.YV > 0) wasDown = true;
-
-	//console.log("Top Left: " + cell + "\nTop Right: " + cellRight + "\nBottom Left: " + cellDown + "\nBottom Right: " + cellDiag + "\n" + wasUp + " " + wasDown + " " + wasLeft + " " + wasRight + "\n" + this.X + ", " + this.Y + " - " + this.XV + ", " + this.YV);
+	console.log("Top Left: " + cell + "\nTop Right: " + cellRight + "\nBottom Left: " + cellDown + "\nBottom Right: " + cellDiag + "\n" + wasUp + " " + wasDown + " " + wasLeft + " " + wasRight + "\n" + this.X + ", " + this.Y + " - " + this.XV + ", " + this.YV);
 	//console.log(world.YG);
 
 	if ((wasLeft && (this.XV > 0)) || (wasRight && (this.XV < 0)))
 		this.XV = 0;
 
 	if (!cell && !cellRight && !cellDown && !cellRight)
-		falling = true;
+	    falling = true;
 	else
-		falling = false;
+	    falling = false;
 
 	if (wasDown)
 	{
@@ -137,7 +162,7 @@ Player.prototype.update = function(XG, YG, left, right, space)
 		{
 			if (cell && cellRight)
 				this.newY = this.tileToPixel(ty) + world.tileHeight;
-			this.Y = Math.floor(ty + 1);
+			this.Y = Math.floor(ty + 1) - 1;
 			this.YV = 0;
 
 			cell = cellDown;
@@ -170,6 +195,7 @@ Player.prototype.update = function(XG, YG, left, right, space)
 	this.Y = this.newY;
 	if (space && this.canChangeGravity)
 	{
+	    sound.shiftSound.play();
 		world.reverseGravity();
 		this.canChangeGravity = false;
 	}
@@ -205,9 +231,25 @@ Player.prototype.update = function(XG, YG, left, right, space)
 		this.runningDisplacement += 0.03;
 
 	if (falling)
-		this.flyTime++;
+	    this.flyTime++;
 	else
-		this.flyTime = 0;
+	{
+	    if (this.flyTime > 0 && Math.abs(this.YV) > 2)
+	        sound.fallSound.play();
+
+	    this.flyTime = 0;
+	}
+
+    // Play the step sounds
+	if ((this.runningDisplacement.toFixed(1) % 2 == 0) && (left || right) && !falling)
+	{
+        sound.playStepSound();
+	}
+}
+
+Player.prototype.resetShouldPlayStepSound = function()
+{
+    this.shouldPlayStepSound = true;
 }
 
 // Function: Align a coordinate to the length of a tile
@@ -256,7 +298,7 @@ Player.prototype.draw = function(displacementX, displacementY, cameraX, cameraY,
 	if (world.YG < 0)
 	{
 		context.save();
-		context.translate(1024, 768);
+		context.translate(1600, 900);
 		context.rotate(this.pi);
 
 		cameraX += cameraDisplacementX;
