@@ -19,19 +19,11 @@ quit_us.src = "images/misc/quit.png";
 var start_us = document.createElement("img");
 start_us.src = "images/misc/start.png";
 
-//draws images
-function startMenuButtons()
-{	
-	context.drawImage(inversion, 540, 200, 508, 124);
-    context.drawImage(start_us, 700, 340, 200, 50);
-    context.drawImage(quit_us, 700, 400, 200, 50);
-}
-
 // Make the main game variables
 var keyboard = new Keyboard();
 var sound = new Sound();
 var world = new World(48, 48);
-var player = new Player(world.levelOrigins[world.currentLevel], world.levelOrigins[world.currentLevel + 1]);
+var player = new Player(world.levelOrigins[world.currentLevel * 2], world.levelOrigins[(world.currentLevel * 2) + 1]);
 var effects = [];
 
 // Set up frame counting (FPS)
@@ -49,11 +41,44 @@ var previousRight = false;
 var displacementX = (canvas.width / 2) - (player.width / 2);
 var displacementY = (canvas.height / 2) - (player.height / 2);
 
+//draws images
+function startMenuButtons()
+{
+    context.drawImage(inversion, 540, 200, 508, 124);
+    context.drawImage(start_us, 700, 340, 200, 50);
+    context.drawImage(quit_us, 700, 400, 200, 50);
+
+    if (mouse.getMouseState())
+    {
+        console.log("Mouse pressed!");
+
+        if (mouse.x > 700 && mouse.x < 900 && mouse.y > 340 && mouse.y < 390)
+        {
+            console.log("Play button pressed!");
+
+            sound.selectSound.play();
+            gameState = 1;
+
+            sound.menuMusic.stop();
+            sound.gameMusic.play();
+
+            sound.enterSound.play();
+        }
+        else if(mouse.x > 700 && mouse.x < 900 & mouse.y > 400 && mouse.y < 450)
+        {
+            console.log("Quit button pressed!");
+
+            sound.selectSound.play();
+            window.close();
+        }
+    }
+}
+
 // Function: Clear the screen
 function clear()
 {
 	// Set the colour
-	context.fillStyle = "#87CEFA";
+	context.fillStyle = "#856548";
 	
 	// Fill the screen with that colour
 	context.fillRect(0, 0, canvas.width, canvas.height);
@@ -129,6 +154,13 @@ function run()
         for (var i = 0; i < effects.length; i++)
             effects[i].draw(displacementX, displacementY, cameraX, cameraY);
 
+        // Draw the level door
+        context.drawImage(world.doorImage, displacementX, displacementY, world.tileWidth, world.tileHeight);
+        /*
+                displacementX + (world.levelDoors[world.currentLevel * 2] player.X) - cameraX,
+                displacementY + (world.levelDoors[(world.currentLevel * 2) + 1] player.Y) - cameraY,
+                this.tileWidth, this.tileHeight);
+        */
         if (!player.isDead)
         {
             // Draw the player
@@ -153,13 +185,14 @@ function run()
     else if (gameState == 2)
     {
         // Credits/You win
+
     }
 
     // Draw the FPS counter
 	context.font = "12px Courier";
 	context.fillStyle = "#FFF";
 	context.fillText("Inversion - Alpha 0.5 - " + frames + " FPS - Alpaca Trousers", 10, 15);
-	context.fillText("Cert II IDMT Project", 10, 30);
+	context.fillText("Cert II IDMT Project - All Music by James McCawley!", 10, 30);
 	context.fillText("Game State: " + gameState, 10, 45);
 
 	// Make sure the next frame draws

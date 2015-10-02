@@ -71,6 +71,15 @@ var Sound = function()
     ({
         urls: ["sounds/music/menu.mp3"],
         volume: 1.0,
+        autoplay: true,
+        buffer: true,
+        fadein: true,
+        looped: true
+    });
+    this.gameMusic = new Howl
+    ({
+        urls: ["sounds/music/game.mp3"],
+        volume: 1.0,
         autoplay: false,
         buffer: true,
         fadein: true,

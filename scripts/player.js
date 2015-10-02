@@ -99,7 +99,8 @@ Player.prototype.update = function(XG, YG, left, right, previousLeft, previousRi
 	this.isDead = ((wasDown && (cellDown == 3 || cellDiag == 3))
         || (wasUp && (cell == 4 || cellRight == 4) && this.YV < -2)
         || (wasLeft && (cell == 5 || cellDown == 5))
-        || (wasRight && (cellRight == 6 || cellDiag == 6)))
+        || (wasRight && (cellRight == 6 || cellDiag == 6))
+        || cell == 8 || cellRight == 8 || cellDown == 8 || cellDiag == 8)
 
 	if (this.isDead)
 	{
@@ -110,7 +111,7 @@ Player.prototype.update = function(XG, YG, left, right, previousLeft, previousRi
 	    if (Math.floor(Math.random() * 3) == 0)
 	        sound.screamSound.play();
 
-	    effects.splice(effects.length - 1, new Effect("images/spritesheets/explosion.png", this.X + (this.width / 2), this.Y + (this.height / 2), 0.0, 0.0, 1.0, 16, 16, 16, 0, 2, 0.0, 0.0));
+	    effects[effects.length] = new Effect("images/spritesheets/explosion.png", this.X - (this.width / 2), this.Y - (this.height / 2), 0.0, 0.0, 1.0, 16, 16, 16, 0, 2, 0.0, 0.0);
 
 	    return;
 	}
